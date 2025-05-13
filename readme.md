@@ -8,3 +8,4 @@ a awesome utility nob to replace makefile.
 
 this game may not be complete and may have bugs.
 
+![O_o](https://github.com/SoaB/brickout/blob/main/brickout.gif)
