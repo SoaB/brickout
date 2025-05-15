@@ -127,7 +127,7 @@ typedef struct {
     float frameTime[MAX_ENEMYS]; // 動畫影格經過時間
     int16_t frameCount[MAX_ENEMYS]; // 目前動畫影格編號
     int count; // 目前活動中的敵人數量
-    AnimFrame af; // 敵人精靈圖資訊 (所有敵人共用)
+    AnimFrame af[ENEMY_NUMS - 1]; // 敵人精靈圖資訊 (所有敵人共用)
 } Enemys;
 
 Enemys enemys = { 0 }; // 敵人管理結構的全域實體
@@ -156,7 +156,10 @@ static void EnemySwitchNext(int index)
 void EnemyInit()
 {
     EnemyPathInit(); // 初始化敵人移動路徑
-    enemys.af = AnimFrameLoad("asset/demon2.png", 64, 64); // 載入動畫影格資訊
+    enemys.af[ENEMY_FLY - 1] = AnimFrameLoad("asset/demon2.png", 64, 64); // 載入動畫影格資訊
+    enemys.af[ENEMY_BUG - 1] = AnimFrameLoad("asset/enemy-01.png", 48, 48); // 載入動畫影格資訊
+    enemys.af[ENEMY_SHIT - 1] = AnimFrameLoad("asset/enemy-02.png", 48, 48); // 載入動畫影格資訊
+    enemys.af[ENEMY_CAKE - 1] = AnimFrameLoad("asset/enemy-03.png", 48, 48); // 載入動畫影格資訊
 
     for (int i = 0; i < MAX_ENEMYS; i++) {
         enemys.pathSelect[i] = 0; // 預設路徑
@@ -181,7 +184,9 @@ void EnemyInit()
  */
 void EnemyFini()
 {
-    AnimFrameUnload(&enemys.af); // 卸載已載入的動畫影格資訊
+    for (int i = 0; i < ENEMY_NUMS - 1; i++) {
+        AnimFrameUnload(&enemys.af[enemys.eType[i]]); // 卸載已載入的動畫影格資訊
+    }
 }
 
 /**
@@ -199,7 +204,6 @@ void EnemyTryAdd(EnemyType eType, int pathSel, float speed)
 #endif
         return;
     }
-
     int i = enemys.count; // 新敵人的索引 (陣列末端新增)
     enemys.eType[i] = eType;
     enemys.pathSelect[i] = pathSel;
@@ -247,7 +251,7 @@ void EnemyUpdate()
         enemys.frameTime[i] += deltaTime;
         if (enemys.frameTime[i] >= 0.16f) { // 每0.16秒更新一次影格 (約6FPS動畫)
             enemys.frameTime[i] -= 0.16f;
-            enemys.frameCount[i] = (enemys.frameCount[i] + 1) % enemys.af.xCellCount; // 循環動畫影格
+            enemys.frameCount[i] = (enemys.frameCount[i] + 1) % enemys.af[enemys.eType[i] - 1].xCellCount; // 循環動畫影格
         }
     }
 }
@@ -301,31 +305,32 @@ void EnemyRemove(int index)
 void EnemyDraw()
 {
     for (int i = 0; i < enemys.count; i++) {
-        if (enemys.eType[i] == ENEMY_NONE) continue; // 不繪製非活動的敵人
+        if (enemys.eType[i] == ENEMY_NONE)
+            continue; // 不繪製非活動的敵人
 
         // 計算動畫影格 (假設僅有水平方向動畫)
-        int frame_col = enemys.frameCount[i] % enemys.af.xCellCount;
+        int frame_col = enemys.frameCount[i] % enemys.af[enemys.eType[i]-1].xCellCount;
         int frame_row = 0; // Y方向的儲存格固定為第0列 (若需依sType等變更則調整)
 
         // 來源精靈圖上的繪製矩形區域
         Rectangle sourceRec = {
-            (float)(frame_col * enemys.af.cellW), // 影格欄 * 儲存格寬度
-            (float)(frame_row * enemys.af.cellH), // 影格列 * 儲存格高度
-            (float)enemys.af.cellW,
-            (float)enemys.af.cellH
+            (float)(frame_col * enemys.af[enemys.eType[i]-1].cellW), // 影格欄 * 儲存格寬度
+            (float)(frame_row * enemys.af[enemys.eType[i]-1].cellH), // 影格列 * 儲存格高度
+            (float)enemys.af[enemys.eType[i]-1].cellW,
+            (float)enemys.af[enemys.eType[i]-1].cellH
         };
         // 目標畫面上繪製矩形區域 (位置為敵人中心，大小為儲存格大小)
         Rectangle destRec = {
             enemys.pos[i].x, // 繪製位置 X (中心)
             enemys.pos[i].y, // 繪製位置 Y (中心)
-            (float)enemys.af.cellW,
-            (float)enemys.af.cellH
+            (float)enemys.af[enemys.eType[i]-1].cellW,
+            (float)enemys.af[enemys.eType[i]-1].cellH
         };
         // 旋轉軸心 (精靈中心)
-        Vector2 origin = { (float)enemys.af.centerW, (float)enemys.af.centerH };
+        Vector2 origin = { (float)enemys.af[enemys.eType[i]-1].centerW, (float)enemys.af[enemys.eType[i]-1].centerH };
 
         // 繪製紋理
-        DrawTexturePro(enemys.af.tex, sourceRec, destRec, origin, 0.0f, WHITE);
+        DrawTexturePro(enemys.af[enemys.eType[i]-1].tex, sourceRec, destRec, origin, 0.0f, WHITE);
     }
 }
 
@@ -377,7 +382,8 @@ void EnemySpawn()
     spawnTime += gTimer.DeltaTime(); // 累加經過時間
     if (spawnTime > 2.0f) { // 每2秒產生一個新敵人
         // 新增 ENEMY_FLY 類型敵人，使用隨機路徑 (0-4)，速度200
-        EnemyTryAdd(ENEMY_FLY, GetRandomValue(0, 4), 200.0f);
+        int enemyRand = GetRandomValue(1,4);
+        EnemyTryAdd(enemyRand, GetRandomValue(0, 4), 200.0f);
         spawnTime = 0.0f; // 重設產生計時器
     }
 }

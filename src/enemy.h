@@ -9,6 +9,9 @@
 typedef enum {
     ENEMY_NONE = 0,
     ENEMY_FLY,
+    ENEMY_BUG,
+    ENEMY_SHIT,
+    ENEMY_CAKE,
     ENEMY_NUMS,
 } EnemyType;
 
