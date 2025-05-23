@@ -8,17 +8,6 @@
 // Typedefs for convenience
 typedef Vector2 Vec2; // 二維向量
 typedef Rectangle Rect; // 矩形
-// Brick colors enum
-typedef enum {
-    BC_NULL = 0,
-    BC_WHITE, // 白色磚塊 (根據原邏輯，此顏色磚塊無法銷毀)
-    BC_RED, // 紅色
-    BC_PURPLE, // 紫色
-    BC_YELLOW, // 黃色
-    BC_GREEN, // 綠色
-    BC_BLUE, // 藍色
-    BC_MAXCOLOR, // 磚塊顏色種類總數
-} BrickColor;
 // Screen dimensions and game element sizes
 #define SCR_WIDTH 800 // 螢幕寬度
 #define SCR_HEIGHT 800 // 螢幕高度

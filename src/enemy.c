@@ -11,30 +11,24 @@
 // ----------------------------------------------------------------------------------
 // 定義 (原程式碼中沒有，但有助於閱讀或視需要調整的項目)
 // ----------------------------------------------------------------------------------
-#ifndef MAX_POINTS // 組成路徑的最大點數
-#define MAX_POINTS 72
-#endif
-#ifndef MAX_ENEMYS // 可同時存在的最大敵人數
-#define MAX_ENEMYS 50 // 假設值，原程式碼應有定義
-#endif
-#ifndef REACH_THRESH // 敵人到達路徑上下一個點的距離閾值
+#define MAX_POINTS 72 // 組成路徑的最大點數
+#define MAX_ENEMYS 100 // 假設值，原程式碼應有定義
 #define REACH_THRESH 5.0f
-#endif
 
-// 外部定義的 enum 假設 (預期在 enemy.h 或 brickout.h 中)
-/*
-typedef enum {
-    ENEMY_NONE = 0, // 無敵人
-    ENEMY_FLY,      // 飛行敵人
-    // 其他敵人類型
-} EnemyType;
+enum EnemyType {
+    ENEMY_NONE = 0,
+    ENEMY_FLY,
+    ENEMY_BUG,
+    ENEMY_SHIT,
+    ENEMY_CAKE,
+    ENEMY_NUMS,
+};
 
-typedef enum {
-    SPRITE_NONE = 0, // 無精靈
-    SPRITE_FLY,      // 飛行精靈
-    // 其他精靈類型
-} SpriteType;
-*/
+enum SpriteType {
+    SPRITE_NONE = 0,
+    SPRITE_FLY,
+    SPRITE_NUMS,
+};
 
 // Vec2 型別是否與 raylib.h 的 Vector2 相同，或為自訂義，尚不清楚。建議統一使用 Vector2。
 // 此處將原 pArr 的 Vec2 視為 Vector2。
@@ -309,7 +303,7 @@ void EnemyDraw()
             continue; // 不繪製非活動的敵人
 
         // 計算動畫影格 (假設僅有水平方向動畫)
-        int frame_col = enemys.frameCount[i] % enemys.af[enemys.eType[i]-1].xCellCount;
+        int frame_col = enemys.frameCount[i] % enemys.af[enemys.eType[i] - 1].xCellCount;
         int frame_row = 0; // Y方向的儲存格固定為第0列 (若需依sType等變更則調整)
 
         // 來源精靈圖上的繪製矩形區域
@@ -380,7 +374,7 @@ static float spawnTime = 0.0f; // 自上次產生後的經過時間
 void EnemySpawn()
 {
     spawnTime += gTimer.DeltaTime(); // 累加經過時間
-    if (spawnTime > 2.0f) { // 每2秒產生一個新敵人
+    if (spawnTime > 1.0f) { // 每2秒產生一個新敵人
         // 新增 ENEMY_FLY 類型敵人，使用隨機路徑 (0-4)，速度200
         int enemyRand = GetRandomValue(1,4);
         EnemyTryAdd(enemyRand, GetRandomValue(0, 4), 200.0f);
